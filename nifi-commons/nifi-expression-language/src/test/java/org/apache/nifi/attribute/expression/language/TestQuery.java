@@ -39,6 +39,7 @@ import java.io.Reader;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -1004,6 +1005,9 @@ public class TestQuery {
     public void testDateConversion() {
         final Map<String, String> attributes = new HashMap<>();
         attributes.put("date", "1403620278642");
+        attributes.put("negativeNumber", "-1403620278642");
+        attributes.put("decimal", "1403620278642.00");
+        attributes.put("non-number", "just a string");
 
         verifyEquals("${date:format('yyyy')}", attributes, "2014");
         verifyEquals("${date:toDate():format('yyyy')}", attributes, "2014");
@@ -1011,12 +1015,33 @@ public class TestQuery {
         verifyEquals("${date:toNumber():toDate():format('yyyy')}", attributes, "2014");
         verifyEquals("${date:toDate():toNumber():format('yyyy')}", attributes, "2014");
         verifyEquals("${date:toDate():toNumber():toDate():toNumber():toDate():toNumber():format('yyyy')}", attributes, "2014");
+
+        assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${negativeNumber:format('yyyy')}", attributes, "2014"));
+
+        assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${decimal:format('yyyy')}", attributes, "2014"));
+
+        assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${non-number:format('yyyy')}", attributes, "2014"));
+
+        assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${negativeNumber:format('yyyy')}", attributes, "2014"));
+
+        assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${decimal:format('yyyy')}", attributes, "2014"));
+
+        assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${non-number:format('yyyy')}", attributes, "2014"));
     }
 
     @Test
     public void testInstantConversion() {
         final Map<String, String> attributes = new HashMap<>();
         attributes.put("instant", "1403620278642");
+        attributes.put("negativeNumber", "-1403620278642");
+        attributes.put("decimal", "1403620278642.00");
+        attributes.put("noStandard", "noSuchInstance");
 
         verifyEquals("${instant:formatInstant('yyyy', 'America/New_York')}", attributes, "2014");
         verifyEquals("${instant:toInstant():formatInstant('yyyy', 'America/New_York')}", attributes, "2014");
@@ -1024,6 +1049,26 @@ public class TestQuery {
         verifyEquals("${instant:toNumber():toInstant():formatInstant('yyyy', 'America/New_York')}", attributes, "2014");
         verifyEquals("${instant:toInstant():toNumber():formatInstant('yyyy', 'America/New_York')}", attributes, "2014");
         verifyEquals("${instant:toInstant():toNumber():toInstant():toNumber():toInstant():toNumber():formatInstant('yyyy', 'America/New_York')}", attributes, "2014");
+
+        AttributeExpressionLanguageException aele = assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${negativeNumber:formatInstant('yyyy', 'America/New_York')}", attributes, "2014"));
+        assertTrue(aele.getMessage().contains("Could not implicitly convert input to INSTANT"));
+        aele = assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${decimal:formatInstant('yyyy', 'America/New_York')}", attributes, "2014"));
+        assertTrue(aele.getMessage().contains("Could not implicitly convert input to INSTANT"));
+        aele = assertThrows(AttributeExpressionLanguageException.class, () ->
+                verifyEquals("${noStandard:formatInstant('yyyy', 'America/New_York')}", attributes, "2014"));
+        assertTrue(aele.getMessage().contains("Could not implicitly convert input to INSTANT"));
+
+        //NOTE The commented out exception is not unique to a negative number it can be any time there is the incorrect syntax for DateTimeFormatter
+        /*IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () ->
+                verifyEquals("${negativeNumber:toInstant('yyyy-MM-ddTHH:mm:ss', 'GMT'):toString()}", attributes, "1925-07-10T09:28:41Z"));
+        assertTrue(iae.getMessage().contains("Unknown pattern letter: T"));*/
+        DateTimeParseException dtpe = assertThrows(DateTimeParseException.class,
+                () -> verifyEquals("${negativeNumber:toInstant('yyyy-MM-dd HH:mm:ss', 'GMT'):toString()}", attributes, "1925-07-10 09:28:41Z"));
+        assertTrue(dtpe.getMessage().contains("could not be parsed at index"));
+        verifyEquals("${decimal:toInstant():toString()}", attributes, "2014-06-24T14:31:18.642Z");
+        verifyEmpty("${noStandard:toInstant()}", attributes);
     }
 
     @Test

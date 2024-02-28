@@ -2237,7 +2237,7 @@ In order to run the correct method, the parameter types must be correct. The Exp
 === format
 
 *Description*: [.description]#Formats a number as a date/time according to the format specified by the argument. The argument
-	must be a String that is a valid Java DateTimeFormatter format. The Subject is expected to be a Number that
+	must be a string that is a valid Java DateTimeFormatter format. The Subject is expected to be a positive whole number that
 	represents the number of milliseconds since Midnight GMT on January 1, 1970. The number will be evaluated using the local
 	time zone unless specified in the second optional argument.#
 
