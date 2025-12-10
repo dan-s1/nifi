@@ -144,7 +144,7 @@ public class MetricsService {
         double fileDescriptorUsage = virtualMachineMetrics.fileDescriptorUsage();
 
         if (Double.isNaN(fileDescriptorUsage)) {
-            fileDescriptorUsage = 0.0;
+            fileDescriptorUsage = -1.0;
         }
 
         metrics.put(MetricNames.JVM_FILE_DESCRIPTOR_USAGE, fileDescriptorUsage);
