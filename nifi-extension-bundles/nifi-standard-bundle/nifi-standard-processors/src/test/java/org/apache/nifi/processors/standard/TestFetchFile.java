@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
 public class TestFetchFile {
 
     @BeforeEach
@@ -159,6 +158,7 @@ public class TestFetchFile {
         assertTrue(destFile.exists());
     }
 
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
     @Test
     public void testMoveOnCompleteWithTargetExistsButNotWritable() throws IOException {
         final File sourceFile = new File("target/1.txt");
@@ -192,6 +192,7 @@ public class TestFetchFile {
         assertFalse(destFile.exists());
     }
 
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
     @Test
     public void testMoveOnCompleteWithParentOfTargetDirNotAccessible() throws IOException {
         final File sourceFile = new File("target/1.txt");
