@@ -21,43 +21,43 @@ import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
 public class TestFetchFile {
 
     @BeforeEach
     public void prepDestDirectory() throws IOException {
-        final File targetDir = new File("target/move-target");
-        if (!targetDir.exists()) {
-            Files.createDirectories(targetDir.toPath());
+        final Path targetDir = Paths.get("target", "move-target");
+        if (!Files.exists(targetDir)) {
+            Files.createDirectories(targetDir);
             return;
         }
 
-        targetDir.setReadable(true);
+        targetDir.toFile().setReadable(true);
 
-        for (final File file : targetDir.listFiles()) {
-            Files.delete(file.toPath());
+        try (Stream<Path> paths = Files.walk(targetDir)) {
+            paths.map(Path::toFile).forEach(File::delete);
         }
     }
 
     @Test
-    public void notFound() throws IOException {
-        final File sourceFile = new File("notFound");
+    public void notFound() {
+        final Path sourceFile = Paths.get("notFound");
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_NONE.getValue());
 
         runner.enqueue(new byte[0]);
@@ -67,285 +67,289 @@ public class TestFetchFile {
 
     @Test
     public void testSimpleSuccess() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_NONE.getValue());
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_SUCCESS, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).get(0).assertContentEquals(content);
+        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).getFirst().assertContentEquals(content);
 
-        assertTrue(sourceFile.exists());
+        assertTrue(Files.exists(sourceFile));
     }
 
     @Test
     public void testDeleteOnComplete() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_DELETE.getValue());
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_SUCCESS, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).get(0).assertContentEquals(content);
+        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).getFirst().assertContentEquals(content);
 
-        assertFalse(sourceFile.exists());
+        assertFalse(Files.exists(sourceFile));
     }
 
     @Test
     public void testMoveOnCompleteWithTargetDirExisting() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
+        final Path destDir = Paths.get("target","move-target");
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        destDir.mkdirs();
-        assertTrue(destDir.exists());
 
-        final File destFile = new File(destDir, sourceFile.getName());
+        Files.createDirectories(destDir);
+        assertTrue(Files.exists(destDir));
+
+        final Path destFile = destDir.resolve(sourceFile.getFileName());
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_SUCCESS, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).get(0).assertContentEquals(content);
+        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).getFirst().assertContentEquals(content);
 
-        assertFalse(sourceFile.exists());
-        assertTrue(destFile.exists());
+        assertFalse(Files.exists(sourceFile));
+        assertTrue(Files.exists(destFile));
     }
 
     @Test
     public void testMoveOnCompleteWithTargetDirMissing() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
+
+        final Path destDir = Paths.get("target", "move-target");
+        if (Files.exists(destDir)) {
+            Files.delete(destDir);
+        }
+        assertFalse(Files.exists(destDir));
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        if (destDir.exists()) {
-            destDir.delete();
-        }
-        assertFalse(destDir.exists());
-
-        final File destFile = new File(destDir, sourceFile.getName());
+        final Path destFile = destDir.resolve(sourceFile.getFileName());
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_SUCCESS, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).get(0).assertContentEquals(content);
+        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).getFirst().assertContentEquals(content);
 
-        assertFalse(sourceFile.exists());
-        assertTrue(destFile.exists());
+        assertFalse(Files.exists(sourceFile));
+        assertTrue(Files.exists(destFile));
     }
 
     @Test
     public void testMoveOnCompleteWithTargetExistsButNotWritable() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
+
+        final Path destDir = Paths.get("target", "move-target");
+        if (!Files.exists(destDir)) {
+            Files.createDirectories(destDir);
+        }
+        destDir.toFile().setWritable(false);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        if (!destDir.exists()) {
-            destDir.mkdirs();
-        }
-        destDir.setWritable(false);
+        assertTrue(Files.exists(destDir));
+        assertFalse(Files.isWritable(destDir));
 
-        assertTrue(destDir.exists());
-        assertFalse(destDir.canWrite());
-
-        final File destFile = new File(destDir, sourceFile.getName());
+        final Path destFile = destDir.resolve(sourceFile.getFileName());
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_FAILURE, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_FAILURE).get(0).assertContentEquals("");
+        runner.getFlowFilesForRelationship(FetchFile.REL_FAILURE).getFirst().assertContentEquals("");
 
-        assertTrue(sourceFile.exists());
-        assertFalse(destFile.exists());
+        assertTrue(Files.exists(sourceFile));
+        assertFalse(Files.exists(destFile));
     }
 
     @Test
     public void testMoveOnCompleteWithParentOfTargetDirNotAccessible() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
 
-        final String moveTargetParent = "target/fetch-file";
-        final String moveTarget = moveTargetParent + "/move-target";
+        final Path moveTargetParent = Paths.get("target", "fetch-file");
+        final Path moveTarget = moveTargetParent.resolve("move-target");
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, moveTarget);
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, moveTarget.toString());
         runner.assertValid();
 
         // Make the parent of move-target non-writable and non-readable
-        final File moveTargetParentDir = new File(moveTargetParent);
-        moveTargetParentDir.mkdirs();
-        moveTargetParentDir.setReadable(false);
-        moveTargetParentDir.setWritable(false);
+        Files.createDirectories(moveTargetParent);
+        moveTargetParent.toFile().setReadable(false);
+        moveTargetParent.toFile().setWritable(false);
+
         try {
             runner.enqueue(new byte[0]);
             runner.run();
             runner.assertAllFlowFilesTransferred(FetchFile.REL_FAILURE, 1);
-            runner.getFlowFilesForRelationship(FetchFile.REL_FAILURE).get(0).assertContentEquals("");
+            runner.getFlowFilesForRelationship(FetchFile.REL_FAILURE).getFirst().assertContentEquals("");
 
-            assertTrue(sourceFile.exists());
+            assertTrue(Files.exists(sourceFile));
         } finally {
-            moveTargetParentDir.setReadable(true);
-            moveTargetParentDir.setWritable(true);
+            moveTargetParent.toFile().setReadable(true);
+            moveTargetParent.toFile().setWritable(true);
         }
     }
 
     @Test
     public void testMoveAndReplace() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
+        final Path destDir = Paths.get("target", "move-target");
+        Files.createDirectories(destDir);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.setProperty(FetchFile.CONFLICT_STRATEGY, FetchFile.CONFLICT_REPLACE.getValue());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        final File destFile = new File(destDir, sourceFile.getName());
-        Files.write(destFile.toPath(), "Good-bye".getBytes(), StandardOpenOption.CREATE);
+
+        final Path destFile = destDir.resolve(sourceFile.getFileName());
+        Files.write(destFile, "Good-bye".getBytes(), StandardOpenOption.CREATE);
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_SUCCESS, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).get(0).assertContentEquals(content);
+        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).getFirst().assertContentEquals(content);
 
-        final byte[] replacedContent = Files.readAllBytes(destFile.toPath());
+        final byte[] replacedContent = Files.readAllBytes(destFile);
         assertArrayEquals(content, replacedContent);
-        assertFalse(sourceFile.exists());
-        assertTrue(destFile.exists());
+        assertFalse(Files.exists(sourceFile));
+        assertTrue(Files.exists(destFile));
     }
 
     @Test
     public void testMoveAndKeep() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
+        final Path destDir = Paths.get("target","move-target");
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.setProperty(FetchFile.CONFLICT_STRATEGY, FetchFile.CONFLICT_KEEP_INTACT.getValue());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        final File destFile = new File(destDir, sourceFile.getName());
+        final Path destFile = destDir.resolve(sourceFile.getFileName());
 
         final byte[] goodBye = "Good-bye".getBytes();
-        Files.write(destFile.toPath(), goodBye);
+        Files.write(destFile, goodBye);
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_SUCCESS, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).get(0).assertContentEquals(content);
+        runner.getFlowFilesForRelationship(FetchFile.REL_SUCCESS).getFirst().assertContentEquals(content);
 
-        final byte[] replacedContent = Files.readAllBytes(destFile.toPath());
+        final byte[] replacedContent = Files.readAllBytes(destFile);
         assertArrayEquals(goodBye, replacedContent);
-        assertFalse(sourceFile.exists());
-        assertTrue(destFile.exists());
+        assertFalse(Files.exists(sourceFile));
+        assertTrue(Files.exists(destFile));
     }
 
     @Test
     public void testMoveAndFail() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target","1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
+        final Path destDir = Paths.get("target","move-target");
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.setProperty(FetchFile.CONFLICT_STRATEGY, FetchFile.CONFLICT_FAIL.getValue());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        final File destFile = new File(destDir, sourceFile.getName());
+
+        final Path destFile = destDir.resolve(sourceFile.getFileName());
 
         final byte[] goodBye = "Good-bye".getBytes();
-        Files.write(destFile.toPath(), goodBye);
+        Files.write(destFile, goodBye);
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_FAILURE, 1);
 
-        final byte[] replacedContent = Files.readAllBytes(destFile.toPath());
+        final byte[] replacedContent = Files.readAllBytes(destFile);
         assertArrayEquals(goodBye, replacedContent);
-        assertTrue(sourceFile.exists());
-        assertTrue(destFile.exists());
+        assertTrue(Files.exists(sourceFile));
+        assertTrue(Files.exists(destFile));
     }
 
 
     @Test
     public void testMoveAndRename() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
+        final Path destDir = Paths.get("target", "move-target");
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.setProperty(FetchFile.CONFLICT_STRATEGY, FetchFile.CONFLICT_RENAME.getValue());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        final File destFile = new File(destDir, sourceFile.getName());
+        final Path destFile = destDir.resolve(sourceFile.getFileName());
 
         final byte[] goodBye = "Good-bye".getBytes();
-        Files.write(destFile.toPath(), goodBye);
+        Files.write(destFile, goodBye);
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_SUCCESS, 1);
 
-        final byte[] replacedContent = Files.readAllBytes(destFile.toPath());
+        final byte[] replacedContent = Files.readAllBytes(destFile);
         assertArrayEquals(goodBye, replacedContent);
-        assertFalse(sourceFile.exists());
-        assertTrue(destFile.exists());
+        assertFalse(Files.exists(sourceFile));
+        assertTrue(Files.exists(destFile));
 
-        assertEquals(2, destDir.list().length);
+        assertEquals(2, destDir.toFile().list().length);
     }
 }
