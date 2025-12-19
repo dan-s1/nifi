@@ -180,7 +180,7 @@ public class TestFetchFile {
         runner.assertValid();
 
         assertTrue(Files.exists(destDir));
-        assertFalse(Files.isWritable(destDir));
+        assertFalse(destDir.toFile().canWrite());
 
         final Path destFile = destDir.resolve(sourceFile.getFileName());
 
