@@ -179,14 +179,15 @@ public class TestFetchFile {
         runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.assertValid();
 
+        assertTrue(Files.exists(destDir));
+
         if (isWindows()) {
             Files.setAttribute(destDir, "dos:readonly", true);
+            assertFalse(Files.isWritable(destDir));
         } else {
             destDir.toFile().setWritable(false);
+            assertFalse(destDir.toFile().canWrite());
         }
-
-        assertTrue(Files.exists(destDir));
-        assertFalse(destDir.toFile().canWrite());
 
         final Path destFile = destDir.resolve(sourceFile.getFileName().toString());
 
