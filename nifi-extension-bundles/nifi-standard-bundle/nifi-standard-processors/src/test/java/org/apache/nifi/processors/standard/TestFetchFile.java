@@ -27,6 +27,8 @@ import org.junit.jupiter.api.condition.OS;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -158,38 +160,43 @@ public class TestFetchFile {
         assertTrue(destFile.exists());
     }
 
-    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
+    //@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
     @Test
     public void testMoveOnCompleteWithTargetExistsButNotWritable() throws IOException {
-        final File sourceFile = new File("target/1.txt");
+        final Path sourceFile = Paths.get("target", "1.txt");
         final byte[] content = "Hello, World!".getBytes();
-        Files.write(sourceFile.toPath(), content, StandardOpenOption.CREATE);
+        Files.write(sourceFile, content, StandardOpenOption.CREATE);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchFile());
-        runner.setProperty(FetchFile.FILENAME, sourceFile.getAbsolutePath());
+        runner.setProperty(FetchFile.FILENAME, sourceFile.toString());
         runner.setProperty(FetchFile.COMPLETION_STRATEGY, FetchFile.COMPLETION_MOVE.getValue());
         runner.assertNotValid();
-        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, "target/move-target");
+
+        final Path destDir = Paths.get("target", "move-target");
+        if (!Files.exists(destDir)) {
+            Files.createDirectories(destDir);
+        }
+        runner.setProperty(FetchFile.MOVE_DESTINATION_DIR, destDir.toString());
         runner.assertValid();
 
-        final File destDir = new File("target/move-target");
-        if (!destDir.exists()) {
-            destDir.mkdirs();
+        if (isWindows()) {
+            Files.setAttribute(destDir, "dos:readonly", true);
+        } else {
+            destDir.toFile().setWritable(false);
         }
-        destDir.setWritable(false);
 
-        assertTrue(destDir.exists());
-        assertFalse(destDir.canWrite());
+        assertTrue(Files.exists(destDir));
+        assertFalse(destDir.toFile().canWrite());
 
-        final File destFile = new File(destDir, sourceFile.getName());
+        final Path destFile = destDir.resolve(sourceFile.getFileName().toString());
 
         runner.enqueue(new byte[0]);
         runner.run();
         runner.assertAllFlowFilesTransferred(FetchFile.REL_FAILURE, 1);
-        runner.getFlowFilesForRelationship(FetchFile.REL_FAILURE).get(0).assertContentEquals("");
+        runner.getFlowFilesForRelationship(FetchFile.REL_FAILURE).getFirst().assertContentEquals("");
 
-        assertTrue(sourceFile.exists());
-        assertFalse(destFile.exists());
+        assertTrue(Files.exists(sourceFile));
+        assertFalse(Files.exists(destFile));
     }
 
     @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
@@ -348,5 +355,9 @@ public class TestFetchFile {
         assertTrue(destFile.exists());
 
         assertEquals(2, destDir.list().length);
+    }
+
+    private boolean isWindows() {
+        return System.getProperty("os.name").startsWith("Windows");
     }
 }
