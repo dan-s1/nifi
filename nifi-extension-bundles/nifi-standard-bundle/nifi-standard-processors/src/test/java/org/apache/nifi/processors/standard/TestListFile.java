@@ -35,8 +35,8 @@ import org.apache.nifi.util.TestRunners;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.api.condition.DisabledOnOs;
-// import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.File;
@@ -66,7 +66,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-//@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Test only runs on *nix")
 public class TestListFile {
 
     private static boolean isMillisecondSupported = false;
@@ -460,6 +459,7 @@ public class TestListFile {
         assertEquals(1, successFiles2.size());
     }
 
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "java.io.File setReadable(false) does not work on Windows. See javadocs.")
     @Test
     public void testListWithUnreadableFiles() throws Exception {
         final File file1 = new File(TESTDIR + "/unreadable.txt");
@@ -482,6 +482,7 @@ public class TestListFile {
         assertEquals(1, successFiles.size());
     }
 
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "java.io.File setReadable(false) does not work on Windows. See javadocs.")
     @Test
     public void testListWithinUnreadableDirectory() throws Exception {
         final File subdir = new File(TESTDIR + "/subdir");
@@ -517,6 +518,7 @@ public class TestListFile {
         }
     }
 
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "java.io.File setReadable(false) does not work on Windows. See javadocs.")
     @Test
     public void testListingNeedsSufficientPrivilegesAndFittingFilter() throws Exception {
         final File file = new File(TESTDIR + "/file.txt");
@@ -814,7 +816,9 @@ public class TestListFile {
         if (store.supportsFileAttributeView("owner")) {
             // look for username containment to handle Windows domains as well as Unix user names
             // org.junit.ComparisonFailure: expected:<[]username> but was:<[DOMAIN\]username>
-            assertTrue(mock1.getAttribute(ListFile.FILE_OWNER_ATTRIBUTE).contains(userName));
+            final String fileOwnerAttribute = mock1.getAttribute(ListFile.FILE_OWNER_ATTRIBUTE);
+            assertTrue(fileOwnerAttribute.contains(userName),
+                    "Expected %s to contain %s but it didn't.".formatted(fileOwnerAttribute, userName));
         }
         if (store.supportsFileAttributeView("posix")) {
             assertNotNull(mock1.getAttribute(ListFile.FILE_GROUP_ATTRIBUTE), "Group name should be set");
