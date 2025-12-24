@@ -23,8 +23,6 @@ import org.apache.nifi.web.api.entity.FlowRegistryClientEntity;
 import org.apache.nifi.web.api.entity.FlowRegistryClientsEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,7 +35,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DisabledOnOs(OS.WINDOWS)
 public class TestRegistryClientResult {
 
     private ByteArrayOutputStream outputStream;
