@@ -80,7 +80,7 @@ public class TestRegistryClientResult {
 
         final String resultOut = outputStream.toString(StandardCharsets.UTF_8);
 
-        final String expected = """
+        String expected = """
 
             #   Name                                   Type     Id                                     Properties                                                             \s
             -   ------------------------------------   ------   ------------------------------------   ---------------------------------------------------------------------  \s
@@ -89,7 +89,8 @@ public class TestRegistryClientResult {
 
             """;
 
+        final boolean windows = System.getProperty("os.name").startsWith("Windows");
+        expected = windows ? expected.replaceAll("\n", "\r\n") : expected;
         assertEquals(expected, resultOut);
     }
-
 }

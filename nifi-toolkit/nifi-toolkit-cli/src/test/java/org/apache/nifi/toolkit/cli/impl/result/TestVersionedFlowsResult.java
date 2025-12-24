@@ -74,7 +74,7 @@ public class TestVersionedFlowsResult {
 
         final String resultOut = outputStream.toString(StandardCharsets.UTF_8);
 
-        final String expected = """
+        String expected = """
 
                 #   Name     Id                                     Description     \s
                 -   ------   ------------------------------------   --------------  \s
@@ -82,6 +82,8 @@ public class TestVersionedFlowsResult {
                 2   Flow 2   ddf5f289-7502-46df-9798-4b0457c1816b   (empty)         \s
 
                 """;
+        final boolean windows = System.getProperty("os.name").startsWith("Windows");
+        expected = windows ? expected.replaceAll("\n", "\r\n") : expected;
 
         assertEquals(expected, resultOut);
     }

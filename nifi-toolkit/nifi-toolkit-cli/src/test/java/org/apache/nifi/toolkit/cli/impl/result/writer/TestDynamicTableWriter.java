@@ -61,7 +61,7 @@ public class TestDynamicTableWriter {
 
                 """;
 
-        assertEquals(expected, result);
+        assertEquals(getExpectedContent(expected), result);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class TestDynamicTableWriter {
 
                 """;
 
-        assertEquals(expected, result);
+        assertEquals(getExpectedContent(expected), result);
     }
 
     @Test
@@ -121,7 +121,17 @@ public class TestDynamicTableWriter {
 
                 """;
 
-        assertEquals(expected, result);
+        assertEquals(getExpectedContent(expected), result);
     }
 
+    static String getExpectedContent(String string) {
+        final boolean windows = System.getProperty("os.name").startsWith("Windows");
+        String expectedContent = string;
+
+        if (windows) {
+            expectedContent = expectedContent.replaceAll("\n", "\r\n");
+        }
+
+        return expectedContent;
+    }
 }
