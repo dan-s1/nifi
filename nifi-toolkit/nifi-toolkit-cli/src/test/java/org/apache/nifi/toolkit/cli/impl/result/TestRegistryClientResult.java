@@ -18,6 +18,7 @@ package org.apache.nifi.toolkit.cli.impl.result;
 
 import org.apache.nifi.toolkit.cli.api.ResultType;
 import org.apache.nifi.toolkit.cli.impl.result.nifi.RegistryClientsResult;
+import org.apache.nifi.toolkit.cli.impl.result.util.OutputUtil;
 import org.apache.nifi.web.api.dto.FlowRegistryClientDTO;
 import org.apache.nifi.web.api.entity.FlowRegistryClientEntity;
 import org.apache.nifi.web.api.entity.FlowRegistryClientsEntity;
@@ -89,8 +90,6 @@ public class TestRegistryClientResult {
 
             """;
 
-        final boolean windows = System.getProperty("os.name").startsWith("Windows");
-        expected = windows ? expected.replaceAll("\n", "\r\n") : expected;
-        assertEquals(expected, resultOut);
+        assertEquals(OutputUtil.getExpectedContent(expected), resultOut);
     }
 }

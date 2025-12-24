@@ -16,6 +16,7 @@
  */
 package org.apache.nifi.toolkit.cli.impl.result.writer;
 
+import org.apache.nifi.toolkit.cli.impl.result.util.OutputUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +62,7 @@ public class TestDynamicTableWriter {
 
                 """;
 
-        assertEquals(getExpectedContent(expected), result);
+        assertEquals(OutputUtil.getExpectedContent(expected), result);
     }
 
     @Test
@@ -101,7 +102,7 @@ public class TestDynamicTableWriter {
 
                 """;
 
-        assertEquals(getExpectedContent(expected), result);
+        assertEquals(OutputUtil.getExpectedContent(expected), result);
     }
 
     @Test
@@ -121,17 +122,6 @@ public class TestDynamicTableWriter {
 
                 """;
 
-        assertEquals(getExpectedContent(expected), result);
-    }
-
-    static String getExpectedContent(String string) {
-        final boolean windows = System.getProperty("os.name").startsWith("Windows");
-        String expectedContent = string;
-
-        if (windows) {
-            expectedContent = expectedContent.replaceAll("\n", "\r\n");
-        }
-
-        return expectedContent;
+        assertEquals(OutputUtil.getExpectedContent(expected), result);
     }
 }

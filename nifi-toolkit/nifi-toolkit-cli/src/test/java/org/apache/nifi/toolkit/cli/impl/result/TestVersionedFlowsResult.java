@@ -22,6 +22,7 @@ import org.apache.nifi.toolkit.cli.api.ReferenceResolver;
 import org.apache.nifi.toolkit.cli.api.ResultType;
 import org.apache.nifi.toolkit.cli.impl.command.CommandOption;
 import org.apache.nifi.toolkit.cli.impl.result.registry.VersionedFlowsResult;
+import org.apache.nifi.toolkit.cli.impl.result.util.OutputUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -82,10 +83,8 @@ public class TestVersionedFlowsResult {
                 2   Flow 2   ddf5f289-7502-46df-9798-4b0457c1816b   (empty)         \s
 
                 """;
-        final boolean windows = System.getProperty("os.name").startsWith("Windows");
-        expected = windows ? expected.replaceAll("\n", "\r\n") : expected;
 
-        assertEquals(expected, resultOut);
+        assertEquals(OutputUtil.getExpectedContent(expected), resultOut);
     }
 
     @Test
