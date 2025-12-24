@@ -70,7 +70,7 @@ public class TestListFile {
 
     private static boolean isMillisecondSupported = false;
 
-    private final String TESTDIR = "target/test/data/in";
+    private final String TESTDIR = "target%1$stest%1$sdata1%1$sin".formatted(File.separator);
     private final File testDir = new File(TESTDIR);
     private ListFile processor;
     private TestRunner runner;
@@ -184,7 +184,7 @@ public class TestListFile {
         runner.assertTransferCount(ListFile.REL_SUCCESS, 0);
 
         // create first file
-        final File file1 = new File(TESTDIR + "/listing1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "listing1.txt");
         assertTrue(file1.createNewFile());
         assertTrue(file1.setLastModified(time4millis));
 
@@ -198,7 +198,7 @@ public class TestListFile {
         assertVerificationOutcome(Outcome.SUCCESSFUL, "Successfully listed .* Found 1 object.  Of that, 1 matches the filter.");
 
         // create second file
-        final File file2 = new File(TESTDIR + "/listing2.txt");
+        final File file2 = new File(TESTDIR + File.separator + "listing2.txt");
         assertTrue(file2.createNewFile());
         assertTrue(file2.setLastModified(time2millis));
         assertVerificationOutcome(Outcome.SUCCESSFUL, "Successfully listed .* Found 2 objects.  Of those, 2 match the filter.");
@@ -211,7 +211,7 @@ public class TestListFile {
         assertVerificationOutcome(Outcome.SUCCESSFUL, "Successfully listed .* Found 2 objects.  Of those, 2 match the filter.");
 
         // create third file
-        final File file3 = new File(TESTDIR + "/listing3.txt");
+        final File file3 = new File(TESTDIR + File.separator + "listing3.txt");
         assertTrue(file3.createNewFile());
         assertTrue(file3.setLastModified(time4millis));
         // 0 are new because the timestamp is before the min listed timestamp
@@ -264,13 +264,13 @@ public class TestListFile {
 
     @Test
     public void testFilterAge() throws Exception {
-        final File file0 = new File(TESTDIR + "/age0.txt");
+        final File file0 = new File(TESTDIR + File.separator + "age0.txt");
         assertTrue(file0.createNewFile());
 
-        final File file2 = new File(TESTDIR + "/age2.txt");
+        final File file2 = new File(TESTDIR + File.separator + "age2.txt");
         assertTrue(file2.createNewFile());
 
-        final File file4 = new File(TESTDIR + "/age4.txt");
+        final File file4 = new File(TESTDIR + File.separator + "age4.txt");
         assertTrue(file4.createNewFile());
 
         final Function<Boolean, Object> runNext = resetAges -> {
@@ -346,19 +346,19 @@ public class TestListFile {
         final byte[] bytes10000 = new byte[10000];
         FileOutputStream fos;
 
-        final File file1 = new File(TESTDIR + "/size1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "size1.txt");
         assertTrue(file1.createNewFile());
         fos = new FileOutputStream(file1);
         fos.write(bytes10000);
         fos.close();
 
-        final File file2 = new File(TESTDIR + "/size2.txt");
+        final File file2 = new File(TESTDIR + File.separator + "size2.txt");
         assertTrue(file2.createNewFile());
         fos = new FileOutputStream(file2);
         fos.write(bytes5000);
         fos.close();
 
-        final File file3 = new File(TESTDIR + "/size3.txt");
+        final File file3 = new File(TESTDIR + File.separator + "size3.txt");
         assertTrue(file3.createNewFile());
         fos = new FileOutputStream(file3);
         fos.write(bytes1000);
@@ -419,12 +419,12 @@ public class TestListFile {
 
         FileOutputStream fos;
 
-        final File file1 = new File(TESTDIR + "/hidden1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "hidden1.txt");
         assertTrue(file1.createNewFile());
         fos = new FileOutputStream(file1);
         fos.close();
 
-        final File file2 = new File(TESTDIR + "/.hidden2.txt");
+        final File file2 = new File(TESTDIR + File.separator + ".hidden2.txt");
         assertTrue(file2.createNewFile());
         fos = new FileOutputStream(file2);
         fos.close();
@@ -462,11 +462,11 @@ public class TestListFile {
     @DisabledOnOs(value = OS.WINDOWS, disabledReason = "java.io.File setReadable(false) does not work on Windows. See javadocs.")
     @Test
     public void testListWithUnreadableFiles() throws Exception {
-        final File file1 = new File(TESTDIR + "/unreadable.txt");
+        final File file1 = new File(TESTDIR + File.separator + "unreadable.txt");
         assertTrue(file1.createNewFile());
         assertTrue(file1.setReadable(false));
 
-        final File file2 = new File(TESTDIR + "/readable.txt");
+        final File file2 = new File(TESTDIR + File.separator + "readable.txt");
         assertTrue(file2.createNewFile());
 
         final long now = getTestModifiedTime();
@@ -485,19 +485,19 @@ public class TestListFile {
     @DisabledOnOs(value = OS.WINDOWS, disabledReason = "java.io.File setReadable(false) does not work on Windows. See javadocs.")
     @Test
     public void testListWithinUnreadableDirectory() throws Exception {
-        final File subdir = new File(TESTDIR + "/subdir");
+        final File subdir = new File(TESTDIR + File.separator + "subdir");
         assertTrue(subdir.mkdir());
         assertTrue(subdir.setReadable(false));
 
         try {
-            final File file1 = new File(TESTDIR + "/subdir/unreadable.txt");
+            final File file1 = new File(TESTDIR + File.separator + "subdir" + File.separator +  "unreadable.txt");
             assertTrue(file1.createNewFile());
             assertTrue(file1.setReadable(false));
 
-            final File file2 = new File(TESTDIR + "/subdir/readable.txt");
+            final File file2 = new File(TESTDIR + File.separator + "subdir" + File.separator + "readable.txt");
             assertTrue(file2.createNewFile());
 
-            final File file3 = new File(TESTDIR + "/secondReadable.txt");
+            final File file3 = new File(TESTDIR + File.separator + "secondReadable.txt");
             assertTrue(file3.createNewFile());
 
             final long now = getTestModifiedTime();
@@ -521,7 +521,7 @@ public class TestListFile {
     @DisabledOnOs(value = OS.WINDOWS, disabledReason = "java.io.File setReadable(false) does not work on Windows. See javadocs.")
     @Test
     public void testListingNeedsSufficientPrivilegesAndFittingFilter() throws Exception {
-        final File file = new File(TESTDIR + "/file.txt");
+        final File file = new File(TESTDIR + File.separator + "file.txt");
         assertTrue(file.createNewFile());
         runner.setProperty(ListFile.DIRECTORY, testDir.getAbsolutePath());
 
@@ -558,19 +558,19 @@ public class TestListFile {
 
         final long now = getTestModifiedTime();
 
-        final File file1 = new File(TESTDIR + "/file1-abc-apple.txt");
+        final File file1 = new File(TESTDIR + File.separator + "file1-abc-apple.txt");
         assertTrue(file1.createNewFile());
         assertTrue(file1.setLastModified(now));
 
-        final File file2 = new File(TESTDIR + "/file2-xyz-apple.txt");
+        final File file2 = new File(TESTDIR + File.separator + "file2-xyz-apple.txt");
         assertTrue(file2.createNewFile());
         assertTrue(file2.setLastModified(now));
 
-        final File file3 = new File(TESTDIR + "/file3-xyz-banana.txt");
+        final File file3 = new File(TESTDIR + File.separator + "file3-xyz-banana.txt");
         assertTrue(file3.createNewFile());
         assertTrue(file3.setLastModified(now));
 
-        final File file4 = new File(TESTDIR + "/file4-pdq-banana.txt");
+        final File file4 = new File(TESTDIR + File.separator + "file4-pdq-banana.txt");
         assertTrue(file4.createNewFile());
         assertTrue(file4.setLastModified(now));
 
@@ -599,25 +599,25 @@ public class TestListFile {
     public void testFilterPathPattern() throws Exception {
         final long now = getTestModifiedTime();
 
-        final File subdir1 = new File(TESTDIR + "/subdir1");
+        final File subdir1 = new File(TESTDIR + File.separator + "subdir1");
         assertTrue(subdir1.mkdirs());
 
-        final File subdir2 = new File(TESTDIR + "/subdir1/subdir2");
+        final File subdir2 = new File(TESTDIR + File.separator + "subdir1" + File.separator + "subdir2");
         assertTrue(subdir2.mkdirs());
 
-        final File file1 = new File(TESTDIR + "/file1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "file1.txt");
         assertTrue(file1.createNewFile());
         assertTrue(file1.setLastModified(now));
 
-        final File file2 = new File(TESTDIR + "/subdir1/file2.txt");
+        final File file2 = new File(TESTDIR + File.separator + "subdir1" + File.separator + "file2.txt");
         assertTrue(file2.createNewFile());
         assertTrue(file2.setLastModified(now));
 
-        final File file3 = new File(TESTDIR + "/subdir1/subdir2/file3.txt");
+        final File file3 = new File(TESTDIR + File.separator + "subdir1" + File.separator + "subdir2" + File.separator + "file3.txt");
         assertTrue(file3.createNewFile());
         assertTrue(file3.setLastModified(now));
 
-        final File file4 = new File(TESTDIR + "/subdir1/file4.txt");
+        final File file4 = new File(TESTDIR + File.separator + "subdir1" + File.separator + "file4.txt");
         assertTrue(file4.createNewFile());
         assertTrue(file4.setLastModified(now));
 
@@ -642,7 +642,7 @@ public class TestListFile {
         assertEquals(3, successFiles2.size());
 
         // filter path on pattern subdir2
-        runner.setProperty(ListFile.PATH_FILTER, ".*/subdir2");
+        runner.setProperty(ListFile.PATH_FILTER, ".*" + File.separator + "subdir2");
         runner.setProperty(ListFile.RECURSE, "true");
         assertVerificationOutcome(Outcome.SUCCESSFUL, "Successfully listed .* Found 4 objects.  Of those, 1 matches the filter.");
         runNext();
@@ -655,21 +655,21 @@ public class TestListFile {
     public void testFilterPathPatternNegative() throws Exception {
         final long now = getTestModifiedTime();
 
-        final File subdirA = new File(TESTDIR + "/AAA");
+        final File subdirA = new File(TESTDIR + File.separator + "AAA");
         assertTrue(subdirA.mkdirs());
 
-        final File subdirL = new File(TESTDIR + "/LOG");
+        final File subdirL = new File(TESTDIR + File.separator + "LOG");
         assertTrue(subdirL.mkdirs());
 
-        final File file1 = new File(TESTDIR + "/file1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "file1.txt");
         assertTrue(file1.createNewFile());
         assertTrue(file1.setLastModified(now));
 
-        final File file2 = new File(TESTDIR + "/AAA/file2.txt");
+        final File file2 = new File(TESTDIR + File.separator + "AAA" + File.separator + "file2.txt");
         assertTrue(file2.createNewFile());
         assertTrue(file2.setLastModified(now));
 
-        final File file3 = new File(TESTDIR + "/LOG/file3.txt");
+        final File file3 = new File(TESTDIR + File.separator + "LOG" + File.separator + "file3.txt");
         assertTrue(file3.createNewFile());
         assertTrue(file3.setLastModified(now));
 
@@ -689,21 +689,21 @@ public class TestListFile {
     public void testRecurse() throws Exception {
         final long now = getTestModifiedTime();
 
-        final File subdir1 = new File(TESTDIR + "/subdir1");
+        final File subdir1 = new File(TESTDIR + File.separator + "subdir1");
         assertTrue(subdir1.mkdirs());
 
-        final File subdir2 = new File(TESTDIR + "/subdir1/subdir2");
+        final File subdir2 = new File(TESTDIR + File.separator + "subdir1" + File.separator + "subdir2");
         assertTrue(subdir2.mkdirs());
 
-        final File file1 = new File(TESTDIR + "/file1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "file1.txt");
         assertTrue(file1.createNewFile());
         assertTrue(file1.setLastModified(now));
 
-        final File file2 = new File(TESTDIR + "/subdir1/file2.txt");
+        final File file2 = new File(TESTDIR + File.separator + "subdir1" + File.separator + "file2.txt");
         assertTrue(file2.createNewFile());
         assertTrue(file2.setLastModified(now));
 
-        final File file3 = new File(TESTDIR + "/subdir1/subdir2/file3.txt");
+        final File file3 = new File(TESTDIR + File.separator + "subdir1" + File.separator + "subdir2" + File.separator + "file3.txt");
         assertTrue(file3.createNewFile());
         assertTrue(file3.setLastModified(now));
 
@@ -748,15 +748,15 @@ public class TestListFile {
     public void testReadable() throws Exception {
         final long now = getTestModifiedTime();
 
-        final File file1 = new File(TESTDIR + "/file1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "file1.txt");
         assertTrue(file1.createNewFile());
         assertTrue(file1.setLastModified(now));
 
-        final File file2 = new File(TESTDIR + "/file2.txt");
+        final File file2 = new File(TESTDIR + File.separator + "file2.txt");
         assertTrue(file2.createNewFile());
         assertTrue(file2.setLastModified(now));
 
-        final File file3 = new File(TESTDIR + "/file3.txt");
+        final File file3 = new File(TESTDIR + File.separator + "file3.txt");
         assertTrue(file3.createNewFile());
         assertTrue(file3.setLastModified(now));
 
@@ -769,10 +769,11 @@ public class TestListFile {
         runner.assertTransferCount(ListFile.REL_SUCCESS, 3);
     }
 
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "username is not contained in file owner attribute")
     @Test
     public void testAttributesSet() throws Exception {
         // create temp file and time constant
-        final File file1 = new File(TESTDIR + "/file1.txt");
+        final File file1 = new File(TESTDIR + File.separator + "file1.txt");
         assertTrue(file1.createNewFile());
         FileOutputStream fos = new FileOutputStream(file1);
         fos.write(new byte[1234]);
