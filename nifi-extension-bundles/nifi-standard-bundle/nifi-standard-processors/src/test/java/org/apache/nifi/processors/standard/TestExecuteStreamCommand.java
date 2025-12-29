@@ -295,10 +295,8 @@ public class TestExecuteStreamCommand {
         List<MockFlowFile> flowFiles = controller.getFlowFilesForRelationship(ExecuteStreamCommand.OUTPUT_STREAM_RELATIONSHIP);
         MockFlowFile flowFile = flowFiles.getFirst();
         assertEquals(0, flowFile.getSize());
-        assertTrue(flowFile.getAttribute("execution.error").contains("ÄÖÜäöüß"),
-                "Expected 'execution.error' attribute to contain %s but it did not. Full value of 'execution.error' attribute is %s".formatted(
-                "ÄÖÜäöüß", flowFile.getAttribute("execution.error")));
-        assertTrue(flowFile.getAttribute("execution.error").contains("fffffffffffffffffffffffffffffff"));
+        assertTrue(flowFile.getAttribute("execution.error").matches("^\\W{7}f+$"),
+                "Attribute 'execution.error' did not match regular expression ^\\W{7}f+$. Full value of 'execution.error' attribute is %s".formatted(flowFile.getAttribute("execution.error")));
     }
 
     @Test
@@ -330,10 +328,8 @@ public class TestExecuteStreamCommand {
         List<MockFlowFile> flowFiles = controller.getFlowFilesForRelationship(ExecuteStreamCommand.OUTPUT_STREAM_RELATIONSHIP);
         MockFlowFile flowFile = flowFiles.getFirst();
         assertEquals(0, flowFile.getSize());
-        assertTrue(flowFile.getAttribute("execution.error").contains("ÄÖÜäöüß"),
-                "Expected 'execution.error' attribute to contain %s but it did not. Full value of 'execution.error' attribute is %s".formatted(
-                        "ÄÖÜäöüß", flowFile.getAttribute("execution.error")));
-        assertTrue(flowFile.getAttribute("execution.error").contains("fffffffffffffffffffffffffffffff"));
+        assertTrue(flowFile.getAttribute("execution.error").matches("^\\W{7}f+$"),
+                "Attribute 'execution.error' did not match regular expression ^\\W{7}f+$. Full value of 'execution.error' attribute is %s".formatted(flowFile.getAttribute("execution.error")));
     }
 
     @Test
