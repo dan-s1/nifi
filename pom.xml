@@ -216,13 +216,16 @@
         <checkstyle.version>14.0.0</checkstyle.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <jacoco.version>0.8.15</jacoco.version>
+        <argLine/>
         <!-- Configure mockito-core as a Java Agent to enable explicit attachment to processes.
              The path for javaagent is wrapped in double quotes in order for the OS to treat the
              entire path as a single argument string. This is defined in global properties and
              not in a configuration of a execution of the Maven Surefire plugin as
              Surefire natively merges its internal handling of its options with global properties
              whereas a in configuration of an execution replaces parameters.-->
+<!--
         <argLine>-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"</argLine>
+-->
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -749,6 +752,7 @@
                             <exclude>**/*ITSpec.class</exclude>
                         </excludes>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <argLine>-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar" @{argLine}</argLine>
                     </configuration>
                 </plugin>
                 <plugin>
