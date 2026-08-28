@@ -223,9 +223,7 @@
              not in a configuration of a execution of the Maven Surefire plugin as
              Surefire natively merges its internal handling of its options with global properties
              whereas a in configuration of an execution replaces parameters.-->
-<!--
-        <argLine>-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"</argLine>
--->
+        <mockito.agent>-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"</mockito.agent>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -752,7 +750,7 @@
                             <exclude>**/*ITSpec.class</exclude>
                         </excludes>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                        <argLine>-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar" @{argLine}</argLine>
+                        <argLine>@{argLine} ${mockito.agent}</argLine>
                     </configuration>
                 </plugin>
                 <plugin>
