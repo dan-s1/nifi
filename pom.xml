@@ -745,7 +745,7 @@
                         <environmentVariables>
                             <!-- The spawned JVM process natively intercepts this string parameter
                              and securely maps it as a boot argument on Mac and Linux -->
-                            <JDK_JAVA_OPTIONS>-javaagent:${org.mockito:mockito-core:jar}</JDK_JAVA_OPTIONS>
+                            <JAVA_TOOL_OPTIONS>-javaagent:${org.mockito:mockito-core:jar}</JAVA_TOOL_OPTIONS>
                         </environmentVariables>
                     </configuration>
                 </plugin>
