@@ -216,13 +216,9 @@
         <checkstyle.version>14.0.0</checkstyle.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <jacoco.version>0.8.15</jacoco.version>
-        <argLine/>
         <!-- Configure mockito-core as a Java Agent to enable explicit attachment to processes.
              The path for javaagent is wrapped in double quotes in order for the OS to treat the
-             entire path as a single argument string. This is defined in global properties and
-             not in a configuration of a execution of the Maven Surefire plugin as
-             Surefire natively merges its internal handling of its options with global properties
-             whereas a in configuration of an execution replaces parameters.-->
+             entire path as a single argument string. -->
         <mockito.agent>-javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"</mockito.agent>
     </properties>
     <dependencyManagement>
@@ -752,6 +748,31 @@
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <argLine>@{argLine} ${mockito.agent}</argLine>
                     </configuration>
+                    <executions>
+                        <!-- Execution 1: Run all unit tests MINUS the locale test with the Mockito Agent active -->
+                        <execution>
+                            <id>default-test</id>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/VerifyBuildLocaleTest.java</exclude>
+                                </excludes>
+                            </configuration>
+                        </execution>
+                        <!-- Execution 2: Run ONLY the locale test with the Mockito Agent stripped away -->
+                        <execution>
+                            <id>run-isolated-locale-test</id>
+                            <goals>
+                                <goal>test</goal>
+                            </goals>
+                            <configuration>
+                                <includes>
+                                    <include>**/VerifyBuildLocaleTest.java</include>
+                                </includes>
+                                <!-- Wipes out ${mockito.agent} so the text match passes perfectly -->
+                                <argLine>@{argLine}</argLine>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -1136,6 +1157,29 @@
                     </rulesets>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>initialize-argLine-safely</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>bsh-property</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                // Only initialize argLine to empty if it hasn't been set by a profile
+                                if (project.getProperties().getProperty("argLine") == null) {
+                                project.getProperties().setProperty("argLine", "");
+                                }
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
     <profiles>
