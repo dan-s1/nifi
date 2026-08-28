@@ -748,31 +748,6 @@
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <argLine>@{argLine} ${mockito.agent}</argLine>
                     </configuration>
-                    <executions>
-                        <!-- Execution 1: Run all unit tests MINUS the locale test with the Mockito Agent active -->
-                        <execution>
-                            <id>default-test</id>
-                            <configuration>
-                                <excludes>
-                                    <exclude>**/VerifyBuildLocaleTest.java</exclude>
-                                </excludes>
-                            </configuration>
-                        </execution>
-                        <!-- Execution 2: Run ONLY the locale test with the Mockito Agent stripped away -->
-                        <execution>
-                            <id>run-isolated-locale-test</id>
-                            <goals>
-                                <goal>test</goal>
-                            </goals>
-                            <configuration>
-                                <includes>
-                                    <include>**/VerifyBuildLocaleTest.java</include>
-                                </includes>
-                                <!-- Wipes out ${mockito.agent} so the text match passes perfectly -->
-                                <argLine>@{argLine}</argLine>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -1179,7 +1154,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
     <profiles>
@@ -1367,6 +1341,19 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>disable-agent-for-locale-test</id>
+            <activation>
+                <!-- Triggers automatically when Maven is inside the nifi sub-module containing this test -->
+                <file>
+                    <exists>src/test/java/org/apache/nifi/build/VerifyBuildLocaleTest.java</exists>
+                </file>
+            </activation>
+            <properties>
+                <!-- Overwrites the mockito.agent property to be completely blank for this module -->
+                <mockito.agent/>
+            </properties>
         </profile>
     </profiles>
 </project>
