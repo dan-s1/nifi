@@ -328,6 +328,7 @@ jobs:
             -Duser.country=JP
             -Duser.region=JP
             -Duser.timezone=Asia/Tokyo
+            -DskipMockitoAgent=true
           MAVEN_OPTS: >-
             ${{ env.DEFAULT_MAVEN_OPTS }}
             -DargLine=${env.SUREFIRE_OPTS}
@@ -403,6 +404,7 @@ jobs:
             -Duser.country=FR
             -Duser.region=FR
             -Duser.timezone=Europe/Paris
+            -DskipMockitoAgent=true
           MAVEN_OPTS: >-
             ${{ env.DEFAULT_MAVEN_OPTS }}
             -DargLine=${env.SUREFIRE_OPTS}
