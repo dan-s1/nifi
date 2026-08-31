@@ -216,7 +216,6 @@
         <checkstyle.version>14.0.0</checkstyle.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <jacoco.version>0.8.15</jacoco.version>
-        <argLine/>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -1343,7 +1342,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+                            <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
                         </configuration>
                     </plugin>
                 </plugins>
