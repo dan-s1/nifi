@@ -2515,7 +2515,7 @@ public final class StandardProcessGroup implements ProcessGroup {
     public Funnel findFunnel(final String id) {
         final Funnel funnel = flowManager.getFunnel(id);
         if (funnel == null) {
-            return funnel;
+            return null;
         }
 
         if (isOwner(funnel.getProcessGroup())) {

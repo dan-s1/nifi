@@ -850,7 +850,7 @@ public class GetHDFSFileInfo extends AbstractHadoopProcessor {
                     continue; //do not count symlinks. they either will be counted under their actual directories, or won't be count if actual location is not under provided root for scan.
                 } else if (c.isDirectory()) {
                     if (deepUpdate) {
-                        c.updateTotals(deepUpdate);
+                        c.updateTotals(true);
                     }
                     this.totalLen += c.totalLen;
                     this.countDirs += c.countDirs;

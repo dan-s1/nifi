@@ -400,7 +400,7 @@ public class UpdateDatabaseTable extends AbstractProcessor {
                 if (createIfNotExists && primaryKeyFields != null) {
                     primaryKeyColumnNames = new HashSet<>();
                     Arrays.stream(primaryKeyFields.split(","))
-                            .filter(path -> path != null && !path.isBlank())
+                            .filter(path -> !path.isBlank())
                             .map(String::trim)
                             .forEach(primaryKeyColumnNames::add);
                 } else {
@@ -712,9 +712,9 @@ public class UpdateDatabaseTable extends AbstractProcessor {
         final String enquoted;
 
         if (identifier == null) {
-            enquoted = identifier;
+            enquoted = null;
         } else if (quoteIdentifier) {
-            enquoted = statement.enquoteIdentifier(identifier, quoteIdentifier);
+            enquoted = statement.enquoteIdentifier(identifier, true);
         } else {
             enquoted = identifier;
         }

@@ -307,7 +307,7 @@ public class GetFile extends AbstractProcessor {
         for (final File child : children) {
             if (child.isDirectory()) {
                 if (recurseSubdirectories) {
-                    queue.addAll(performListing(child, filter, recurseSubdirectories));
+                    queue.addAll(performListing(child, filter, true));
                 }
             } else if (filter.accept(child)) {
                 queue.add(child);

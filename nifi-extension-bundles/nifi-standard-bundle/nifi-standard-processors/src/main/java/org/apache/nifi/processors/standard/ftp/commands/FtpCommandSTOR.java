@@ -122,7 +122,7 @@ public class FtpCommandSTOR extends AbstractCommand {
             LOG.error("Exception getting file object", e);
         }
         if (ftpFile == null) {
-            throw new DetailedFtpCommandException(FtpReply.REPLY_550_REQUESTED_ACTION_NOT_TAKEN, "STOR.invalid", fileName, ftpFile);
+            throw new DetailedFtpCommandException(FtpReply.REPLY_550_REQUESTED_ACTION_NOT_TAKEN, "STOR.invalid", fileName, null);
         }
         return ftpFile;
     }

@@ -425,13 +425,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public void exportTo(FlowFile flowFile, final OutputStream out) {
         flowFile = validateState(flowFile);
-        if (flowFile == null || out == null) {
-            throw new IllegalArgumentException("arguments cannot be null");
+        if (out == null) {
+            throw new IllegalArgumentException("OutputStream argument cannot be null");
         }
 
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
-        }
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot export a flow file that I did not create");
 
         try {
             out.write(mock.getData());
@@ -443,13 +441,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public void exportTo(FlowFile flowFile, final Path path, final boolean append) {
         flowFile = validateState(flowFile);
-        if (flowFile == null || path == null) {
-            throw new IllegalArgumentException("argument cannot be null");
-        }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
+        if (path == null) {
+            throw new IllegalArgumentException("Path argument cannot be null");
         }
 
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot export a flow file that I did not create");
         final OpenOption mode = append ? StandardOpenOption.APPEND : StandardOpenOption.CREATE;
 
         try (final OutputStream out = Files.newOutputStream(path, mode)) {
@@ -524,13 +520,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile importFrom(final InputStream in, FlowFile flowFile) {
         flowFile = validateState(flowFile);
-        if (in == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
-        }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
+        if (in == null) {
+            throw new IllegalArgumentException("InputStream argument cannot be null");
         }
 
+        MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot import a flow file that I did not create");
         final MockFlowFile newFlowFile = new MockFlowFile(mock.getId(), flowFile);
         currentVersions.put(newFlowFile.getId(), newFlowFile);
         try {
@@ -545,12 +539,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile importFrom(final Path path, final boolean keepSourceFile, FlowFile flowFile) {
         flowFile = validateState(flowFile);
-        if (path == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
+        if (path == null) {
+            throw new IllegalArgumentException("Path argument cannot be null");
         }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
-        }
+
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot import a flow file that I did not create");
         MockFlowFile newFlowFile = new MockFlowFile(mock.getId(), flowFile);
         currentVersions.put(newFlowFile.getId(), newFlowFile);
 
@@ -591,12 +584,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile putAllAttributes(FlowFile flowFile, final Map<String, String> attrs) {
         flowFile = validateState(flowFile);
-        if (attrs == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
+        if (attrs == null) {
+            throw new IllegalArgumentException("Map argument cannot be null");
         }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot update attributes of a flow file that I did not create");
-        }
+
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot update attributes of a flow file that I did not create");
         final MockFlowFile newFlowFile = new MockFlowFile(mock.getId(), flowFile);
         currentVersions.put(newFlowFile.getId(), newFlowFile);
 
@@ -614,12 +606,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile putAttribute(FlowFile flowFile, final String attrName, final String attrValue) {
         flowFile = validateState(flowFile);
-        if (attrName == null || attrValue == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
+        if (attrName == null || attrValue == null) {
+            throw new IllegalArgumentException("arguments cannot be null");
         }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot update attributes of a flow file that I did not create");
-        }
+
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot update attributes of a flow file that I did not create");
 
         if ("uuid".equals(attrName)) {
             Assertions.fail("Should not be attempting to set FlowFile UUID via putAttribute. This will be ignored in production");
@@ -641,10 +632,7 @@ public class MockProcessSession implements ProcessSession {
         }
 
         flowFile = validateState(flowFile);
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
-        }
-
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot read a flow file that I did not create");
         final ByteArrayInputStream bais = new ByteArrayInputStream(mock.getData());
         incrementReadCount(flowFile);
         try {
@@ -780,13 +768,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile removeAllAttributes(FlowFile flowFile, final Set<String> attrNames) {
         flowFile = validateState(flowFile);
-        if (attrNames == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
-        }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
+        if (attrNames == null) {
+            throw new IllegalArgumentException("Set argument cannot be null");
         }
 
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot update attributes of a flow file that I did not create");
         final MockFlowFile newFlowFile = new MockFlowFile(mock.getId(), flowFile);
         currentVersions.put(newFlowFile.getId(), newFlowFile);
 
@@ -797,9 +783,6 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile removeAllAttributes(FlowFile flowFile, final Pattern keyPattern) {
         flowFile = validateState(flowFile);
-        if (flowFile == null) {
-            throw new IllegalArgumentException("flowFile cannot be null");
-        }
         if (keyPattern == null) {
             return (MockFlowFile) flowFile;
         }
@@ -817,12 +800,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile removeAttribute(FlowFile flowFile, final String attrName) {
         flowFile = validateState(flowFile);
-        if (attrName == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
+        if (attrName == null) {
+            throw new IllegalArgumentException("String argument cannot be null");
         }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
-        }
+
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot update attributes of a flow file that I did not create");
         final MockFlowFile newFlowFile = new MockFlowFile(mock.getId(), flowFile);
         currentVersions.put(newFlowFile.getId(), newFlowFile);
 
@@ -885,9 +867,7 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public void transfer(FlowFile flowFile) {
         flowFile = validateState(flowFile);
-        if (!(flowFile instanceof final MockFlowFile mockFlowFile)) {
-            throw new IllegalArgumentException("I only accept MockFlowFile");
-        }
+        final MockFlowFile mockFlowFile = getAsMockFlowFile(flowFile, "I only accept MockFlowFile");
 
         // if the flowfile provided was created in this session (i.e. it's in currentVersions and not in original versions),
         // then throw an exception indicating that you can't transfer FlowFiles back to self.
@@ -957,13 +937,11 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile write(FlowFile flowFile, final OutputStreamCallback callback) {
         flowFile = validateState(flowFile);
-        if (callback == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
-        }
-        if (!(flowFile instanceof final MockFlowFile mock)) {
-            throw new IllegalArgumentException("Cannot export a flow file that I did not create");
+        if (callback == null) {
+            throw new IllegalArgumentException("OutputStreamCallback argument cannot be null");
         }
 
+        final MockFlowFile mock = getAsMockFlowFile(flowFile, "Cannot write to a flow file that I did not create");
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         writeRecursionSet.add(flowFile);
         try {
@@ -1029,8 +1007,8 @@ public class MockProcessSession implements ProcessSession {
     @Override
     public MockFlowFile write(FlowFile flowFile, final StreamCallback callback) {
         flowFile = validateState(flowFile);
-        if (callback == null || flowFile == null) {
-            throw new IllegalArgumentException("argument cannot be null");
+        if (callback == null) {
+            throw new IllegalArgumentException("StreamCallback argument cannot be null");
         }
         final MockFlowFile mock = (MockFlowFile) flowFile;
         final ByteArrayInputStream in = new ByteArrayInputStream(mock.getData());
@@ -1493,6 +1471,14 @@ public class MockProcessSession implements ProcessSession {
         final String curUuid = curFlowFile.getAttribute(CoreAttributes.UUID.key());
         final String providedUuid = curFlowFile.getAttribute(CoreAttributes.UUID.key());
         return curUuid.equals(providedUuid);
+    }
+
+    private MockFlowFile getAsMockFlowFile(FlowFile flowFile, String errMessage) {
+        if (!(flowFile instanceof final MockFlowFile mock)) {
+            throw new IllegalArgumentException(errMessage);
+        }
+
+        return mock;
     }
 
     public static final class Builder {

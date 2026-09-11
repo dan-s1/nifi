@@ -209,7 +209,7 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
         this.authorizer = authorizer;
 
         if (configuredForClustering) {
-            this.configuredForClustering = configuredForClustering;
+            this.configuredForClustering = true;
 
             this.senderListener = senderListener;
             senderListener.addHandler(this);
@@ -893,7 +893,7 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
 
             if (response == null) {
                 // if response is null, then either we had IO problems or we were blocked by firewall or we couldn't determine manager's address
-                return response;
+                return null;
             } else if (response.shouldTryLater()) {
                 // if response indicates we should try later, then coordinator was unable to service our request. Just load local flow and move on.
                 // when the cluster coordinator is able to service requests, this node's heartbeat will trigger the cluster coordinator to reach

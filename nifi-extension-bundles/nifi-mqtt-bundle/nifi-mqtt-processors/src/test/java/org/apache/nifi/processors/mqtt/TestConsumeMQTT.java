@@ -735,10 +735,9 @@ public class TestConsumeMQTT {
 
     @Test
     void addTopicAttributesWithNullTopic() {
-        final String topic = null;
 
         final Map<String, String> attributes = new HashMap<>();
-        new ConsumeMQTT().addTopicAttributes(attributes, topic);
+        new ConsumeMQTT().addTopicAttributes(attributes, null);
 
         assertEquals(1, attributes.size(), "Expected only 1 attribute (for full topic)");
         assertNull(attributes.get("mqtt.topic"), "Full topic should be null");

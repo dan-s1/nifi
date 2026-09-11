@@ -344,7 +344,7 @@ public class StandardPublicPort extends AbstractPort implements PublicPort {
         }
 
         if (dn == null) {
-            final String message = String.format("%s authorization failed for user %s because the DN is unknown", this, dn);
+            final String message = String.format("%s authorization failed for user %s because the DN is unknown", this, null);
             logger.warn(message);
             eventReporter.reportEvent(Severity.WARNING, CATEGORY, message);
             return new StandardPortAuthorizationResult(false, "User DN is not known");

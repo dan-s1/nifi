@@ -105,7 +105,7 @@ public class S3BundlePersistenceProvider implements BundlePersistenceProvider {
 
         final boolean forcePathStyle = getForcePathStyle(configurationContext);
         if (forcePathStyle) {
-            builder.forcePathStyle(forcePathStyle);
+            builder.forcePathStyle(true);
         }
 
         return builder.build();

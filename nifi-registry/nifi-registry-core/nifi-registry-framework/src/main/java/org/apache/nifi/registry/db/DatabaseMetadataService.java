@@ -291,7 +291,7 @@ public class DatabaseMetadataService implements MetadataService {
     public FlowEntity getFlowByIdWithSnapshotCounts(final String flowIdentifier) {
         final FlowEntity flowEntity = getFlowById(flowIdentifier);
         if (flowEntity == null) {
-            return flowEntity;
+            return null;
         }
 
         final Long snapshotCount = getFlowSnapshotCount(flowIdentifier);

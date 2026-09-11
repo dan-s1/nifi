@@ -266,7 +266,7 @@ public class StandardRebalancingPartition implements RebalancingPartition {
         @Override
         public void run() {
             boolean taskInterrupted = false;
-            List<FlowFileRecord> nextBatch = pollNextBatch(taskInterrupted);
+            List<FlowFileRecord> nextBatch = pollNextBatch(false);
 
             while (nextBatch != null) {
                 if (nextBatch.isEmpty()) {

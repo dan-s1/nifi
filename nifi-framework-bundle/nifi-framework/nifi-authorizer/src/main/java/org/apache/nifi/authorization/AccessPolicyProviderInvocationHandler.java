@@ -46,7 +46,7 @@ public class AccessPolicyProviderInvocationHandler implements InvocationHandler 
             if (getUserGroupProviderMethod.equals(method)) {
                 final UserGroupProvider userGroupProvider = (UserGroupProvider) method.invoke(accessPolicyProvider, args);
                 if (userGroupProvider == null) {
-                    return userGroupProvider;
+                    return null;
                 } else {
                     return UserGroupProviderFactory.withNarLoader(userGroupProvider, classLoader);
                 }

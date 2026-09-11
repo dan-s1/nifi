@@ -47,7 +47,7 @@ public class AuthorizerInvocationHandler implements InvocationHandler {
             if (getAccessPolicyProviderMethod.equals(method)) {
                 final AccessPolicyProvider accessPolicyProvider = (AccessPolicyProvider) method.invoke(authorizer, args);
                 if (accessPolicyProvider == null) {
-                    return accessPolicyProvider;
+                    return null;
                 } else {
                     return AccessPolicyProviderFactory.withNarLoader(accessPolicyProvider, classLoader);
                 }

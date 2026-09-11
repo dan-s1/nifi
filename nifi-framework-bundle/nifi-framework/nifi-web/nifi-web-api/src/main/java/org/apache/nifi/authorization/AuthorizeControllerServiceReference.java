@@ -61,7 +61,7 @@ public final class AuthorizeControllerServiceReference {
                         currentServiceAuthorizable.getAuthorizable().authorize(authorizer, RequestAction.READ, NiFiUserUtils.getNiFiUser());
 
                         if (authorizeTransitiveServices) {
-                            authorizeControllerServiceReferences(currentServiceAuthorizable, authorizer, lookup, authorizeTransitiveServices);
+                            authorizeControllerServiceReferences(currentServiceAuthorizable, authorizer, lookup, true);
                         }
                     } catch (ResourceNotFoundException ignored) {
                         // ignore if the resource is not found, if the referenced service was previously deleted, it should not stop this action

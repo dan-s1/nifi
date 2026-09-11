@@ -35,7 +35,7 @@ public class DBCPValidator {
             }
 
             if (input == null) {
-                return new ValidationResult.Builder().subject(subject).input(input).valid(false).explanation("Time Period cannot be null").build();
+                return new ValidationResult.Builder().subject(subject).input(null).valid(false).explanation("Time Period cannot be null").build();
             }
             if (TIME_DURATION_PATTERN.matcher(input.toLowerCase()).matches() || input.equals("-1")) {
                 return new ValidationResult.Builder().subject(subject).input(input).valid(true).build();

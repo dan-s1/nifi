@@ -42,7 +42,7 @@ public class CSVValidators {
 
             if (input == null) {
                 return new ValidationResult.Builder()
-                        .input(input)
+                        .input(null)
                         .subject(subject)
                         .valid(false)
                         .explanation("Input is null for this property")
@@ -67,7 +67,7 @@ public class CSVValidators {
             public ValidationResult validate(String subject, String input, ValidationContext context) {
                 if (input == null) {
                     return new ValidationResult.Builder()
-                            .input(input)
+                            .input(null)
                             .subject(subject)
                             .valid(false)
                             .explanation("Input is null for this property")

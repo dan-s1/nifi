@@ -447,13 +447,13 @@ public class NodeClusterCoordinator implements ClusterCoordinator, ProtocolHandl
      */
     private boolean replaceNodeStatus(final NodeIdentifier nodeId, final NodeConnectionStatus currentStatus, final NodeConnectionStatus newStatus) {
         if (newStatus == null) {
-            logger.error("Cannot change node status for {} from {} to {} because new status is null", nodeId, currentStatus, newStatus);
+            logger.error("Cannot change node status for {} from {} to {} because new status is null", nodeId, currentStatus, null);
             logger.error("", new NullPointerException());
         }
 
         if (currentStatus == null) {
             if (newStatus.getState() == NodeConnectionState.REMOVED) {
-                return removeNodeConditionally(nodeId, currentStatus);
+                return removeNodeConditionally(nodeId, null);
             } else {
                 return updateNodeStatusConditionally(nodeId, null, newStatus);
             }

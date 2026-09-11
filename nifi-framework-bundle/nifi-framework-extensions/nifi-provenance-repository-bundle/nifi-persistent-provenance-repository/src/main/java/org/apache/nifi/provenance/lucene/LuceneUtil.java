@@ -210,7 +210,7 @@ public class LuceneUtil {
      */
     public static String truncateIndexField(String field) {
         if (field == null) {
-            return field;
+            return null;
         }
 
         Charset charset = Charset.defaultCharset();

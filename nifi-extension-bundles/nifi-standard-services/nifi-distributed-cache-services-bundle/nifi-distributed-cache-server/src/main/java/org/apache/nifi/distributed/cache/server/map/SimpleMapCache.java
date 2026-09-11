@@ -85,7 +85,7 @@ public class SimpleMapCache implements MapCache {
             final MapCacheRecord record = cache.get(key);
             if (record == null) {
                 // Record is null. We will add.
-                return put(key, value, record);
+                return put(key, value, null);
             }
 
             // Record is not null. Increment hit count and return result indicating that record was not added.
